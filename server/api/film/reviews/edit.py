@@ -1,39 +1,27 @@
 from .. import film_bp
 from ...auth.oidc import viewer_id
 from flask import request, jsonify
-import sqlite3
-import os
-from datetime import datetime
+from api.util.db_helper import get_db_connection
 
 
 def edit_review(user_id, review_id, new_content, rating):
     """Edit a review by a specific user."""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../../db/reeltone.db')
 
-    with sqlite3.connect(db_path) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM reviews WHERE user_id = ? AND id = ?", (user_id, review_id))
-        existing = cursor.fetchone()
-
-        if existing:
-            # User is the owner — update the review
-            cursor.execute("""
-                UPDATE reviews
-                SET review_text = ?, updated_at = ?, rating = ?
-                WHERE user_id = ? AND id = ?
-            """, (new_content, datetime.now(), rating, user_id, review_id))
-            conn.commit()
-            data = {
-                "id": review_id,
-                "user_id": user_id,
-                "review_text": new_content,
-                "rating": rating,
-                "updated_at": datetime.now().isoformat()
-            }
-            return {"message": "Review updated successfully.", "film_data": data}
-        else:
+    with get_db_connection() as conn:
+        updated = conn.execute("""
+            UPDATE reviews SET review_text = %s, updated_at = now(), rating = %s
+            WHERE user_id = %s AND id = %s RETURNING updated_at
+        """, (new_content, rating, user_id, review_id)).fetchone()
+        if not updated:
             return {"message": "Review not found or user not authorized.", "film_data": {}}
+        data = {
+            "id": review_id,
+            "user_id": user_id,
+            "review_text": new_content,
+            "rating": rating,
+            "updated_at": updated[0].isoformat(),
+        }
+        return {"message": "Review updated successfully.", "film_data": data}
 
 
 @film_bp.route('/reviews/edit', methods=['POST'])

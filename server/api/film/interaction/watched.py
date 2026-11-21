@@ -1,31 +1,27 @@
 from .. import film_bp
 from ...auth.oidc import viewer_id
 from flask import request, jsonify
-import sqlite3
-import os
+from api.util.db_helper import get_db_connection, lock_interaction
 
 def add_to_watched(user_id, film_id, film_title, film_poster):
     """Adds a film to the user's watched list."""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../../db/reeltone.db')
 
-    with sqlite3.connect(db_path) as conn:
+    with get_db_connection() as conn:
+        lock_interaction(conn, 'watched', user_id, film_id)
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM watched WHERE user_id = ? AND film_id = ?", (user_id, film_id))
+        cursor.execute("SELECT id FROM watched WHERE user_id = %s AND film_id = %s", (user_id, film_id))
         existing = cursor.fetchone()
 
         if existing:
             # Film already in watched list
-            cursor.execute("""DELETE FROM watched WHERE user_id = ? AND film_id = ?""", (user_id, film_id))
-            conn.commit()
+            cursor.execute("""DELETE FROM watched WHERE user_id = %s AND film_id = %s""", (user_id, film_id))
             return {"message": "Film removed from watched list."}
         else:
             # Film not in watched list, insert it
             cursor.execute("""
                 INSERT INTO watched (user_id, film_id, film_title, film_poster)
-                VALUES (?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s)
             """, (user_id, film_id, film_title, film_poster))
-            conn.commit()
             return {"message": "Film added to watched list."}
 
 @film_bp.route('/watched', methods=['POST'])

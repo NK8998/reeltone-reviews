@@ -1,17 +1,14 @@
+from psycopg.rows import dict_row
 import tmdbsimple as tmdb
 from . import films_bp
-import sqlite3
-import os
+from api.util.db_helper import get_db_connection
 
 def get_reviewed_films():
     """FETCH top reviews from review table in reeltone DB"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../db/reeltone.db')
 
     try:
-        with sqlite3.connect(db_path) as conn:
-            conn.row_factory = sqlite3.Row  # enables dict-style access
-            cursor = conn.cursor()
+        with get_db_connection() as conn:
+            cursor = conn.cursor(row_factory=dict_row)
             query = """SELECT * FROM reviews WHERE is_parent = TRUE ORDER BY like_count DESC LIMIT 30"""
             cursor.execute(query)
             rows = cursor.fetchall()

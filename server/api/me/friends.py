@@ -1,25 +1,22 @@
+from psycopg.rows import dict_row
 from ..auth.oidc import viewer_id
 from . import me_bp
 from flask import jsonify, request
-import sqlite3
-import os
+from api.util.db_helper import get_db_connection
 
 def get_friends_activity(user_id):
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../db/reeltone.db')
 
     if not user_id:
         raise ValueError("User ID is required")
     
-    with sqlite3.connect(db_path) as conn:
-        conn.row_factory = sqlite3.Row  # ✅ access by column name
-        cursor = conn.cursor()
+    with get_db_connection() as conn:
+        cursor = conn.cursor(row_factory=dict_row)
 
         query = """
             SELECT reviews.*, followers.follower_id
             FROM reviews
             JOIN followers ON reviews.user_id = followers.follower_id
-            WHERE followers.followed_id = ?
+            WHERE followers.followed_id = %s
         """
         cursor.execute(query, (user_id,))
         rows = cursor.fetchall()

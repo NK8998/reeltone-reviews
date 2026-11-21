@@ -1,20 +1,16 @@
+from psycopg.rows import dict_row
 from . import me_bp
 from flask import jsonify, request
-import sqlite3
-import os
+from api.util.db_helper import get_db_connection
 
-import os
-import sqlite3
+from api.util.db_helper import get_db_connection
 
 def get_reviews():
     """Fetch top 30 reviews with highest like count from the database."""
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../db/reeltone.db')
 
-    with sqlite3.connect(db_path) as conn:
-        conn.row_factory = sqlite3.Row  # Access rows as dictionaries
-        cursor = conn.cursor()
+    with get_db_connection() as conn:
+        cursor = conn.cursor(row_factory=dict_row)
 
         query = """
             SELECT 

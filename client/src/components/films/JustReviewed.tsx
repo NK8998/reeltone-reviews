@@ -23,7 +23,7 @@ export default function JustReviewed({
         {Reviewed?.map((review) => {
           return (
             <Link
-              href={`/films/${review.film_id}`}
+              href={`/film/${review.film_id}`}
               key={review.id}
               className='flex flex-col items-center'
             >

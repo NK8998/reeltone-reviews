@@ -1,5 +1,5 @@
-import sqlite3
-import os
+from psycopg.rows import dict_row
+from api.util.db_helper import get_db_connection
 from . import members_bp
 from flask import request, jsonify
 
@@ -10,12 +10,9 @@ def get_all_members(user_id=None):
     If user_id is provided, adds an 'is_following' boolean field
     indicating whether that user follows each returned member.
     """
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../db/reeltone.db')
 
-    with sqlite3.connect(db_path) as conn:
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+    with get_db_connection() as conn:
+        cursor = conn.cursor(row_factory=dict_row)
 
         if user_id:
             cursor.execute("""
@@ -25,7 +22,7 @@ def get_all_members(user_id=None):
                 FROM members m
                 LEFT JOIN followers f
                     ON f.followed_id = m.user_id
-                    AND f.follower_id = ?
+                    AND f.follower_id = %s
             """, (user_id,))
         else:
             cursor.execute("SELECT id, user_id, username, pfp_url, joined_at, 0 AS is_following FROM members")

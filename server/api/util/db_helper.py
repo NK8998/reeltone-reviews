@@ -1,14 +1,20 @@
+import json
 import os
-import sqlite3
 
-def get_db_connection(base_dir):
-    """
-    Connects to the database given a base directory.
-    Args:
-        base_dir (str): The absolute path to the directory from which
-                        the 'db' directory can be found (e.g., '/path/to/server').
-    """
-    db_path = os.path.join(base_dir, 'db', 'reeltone.db')
-    print(f"Helper trying to connect to: {db_path}")
-    conn = sqlite3.connect(db_path)
-    return conn
+import psycopg
+
+
+def get_db_connection():
+    return psycopg.connect(
+        host=os.getenv('PGHOST', '127.0.0.1'),
+        port=os.getenv('PGPORT', '5433'),
+        dbname=os.getenv('PGDATABASE', 'reeltone_reviews'),
+        user=os.getenv('PGUSER', 'reeltone_reviews'),
+        connect_timeout=5,
+        options='-c timezone=UTC',
+    )
+
+
+def lock_interaction(connection, operation, *subjects):
+    key = json.dumps(['reviews', operation, *map(str, subjects)])
+    connection.execute('SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))', (key,))

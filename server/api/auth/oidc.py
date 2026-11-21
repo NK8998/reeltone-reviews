@@ -1,10 +1,7 @@
 import hashlib
 import json
 import os
-from contextlib import closing, contextmanager
-from pathlib import Path
 import secrets
-import sqlite3
 import time
 from urllib.parse import urlsplit
 from uuid import UUID
@@ -14,6 +11,7 @@ from authlib.integrations.flask_client import OAuth
 from authlib.integrations.flask_client.apps import FlaskOAuth2App
 from flask import abort, current_app, g, jsonify, redirect, request, session
 from requests import RequestException
+from api.util.db_helper import get_db_connection
 
 from . import auth_bp
 
@@ -79,9 +77,6 @@ def init_auth(app):
         REVIEWS_ORIGIN=reviews,
         AUTH_ISSUER=issuer,
         AUTH_INTERNAL_URL=internal_issuer,
-        REVIEWS_SESSION_DB=os.getenv('REVIEWS_SESSION_DB') or str(
-            Path(app.root_path) / 'db' / 'reviews-sessions.sqlite3'
-        ),
         REVIEWS_ADMIN_IDS=frozenset(os.getenv('REVIEWS_ADMIN_IDS', '').split()),
     )
     oauth = OAuth(app)
@@ -102,19 +97,6 @@ def init_auth(app):
         )
 
 
-@contextmanager
-def session_db():
-    with closing(sqlite3.connect(current_app.config['REVIEWS_SESSION_DB'])) as connection, connection:
-        connection.execute('''
-            CREATE TABLE IF NOT EXISTS reviews_sessions (
-                token_hash TEXT PRIMARY KEY,
-                profile TEXT NOT NULL,
-                expires_at INTEGER NOT NULL
-            )
-        ''')
-        yield connection
-
-
 def session_hash():
     token = session.get('review_session')
     return hashlib.sha256(token.encode()).hexdigest() if token else None
@@ -125,9 +107,9 @@ def viewer():
         g.reviews_viewer = None
         token_hash = session_hash()
         if token_hash:
-            with session_db() as db:
+            with get_db_connection() as db:
                 row = db.execute(
-                    'SELECT profile FROM reviews_sessions WHERE token_hash = ? AND expires_at > ?',
+                    'SELECT profile FROM reviews_sessions WHERE token_hash = %s AND expires_at > %s',
                     (token_hash, int(time.time())),
                 ).fetchone()
             if row:
@@ -222,9 +204,9 @@ def callback():
     old_session = session_hash()
     token = secrets.token_urlsafe(32)
     now = int(time.time())
-    with session_db() as db:
-        db.execute('DELETE FROM reviews_sessions WHERE expires_at <= ? OR token_hash = ?', (now, old_session))
-        db.execute('INSERT INTO reviews_sessions VALUES (?, ?, ?)',
+    with get_db_connection() as db:
+        db.execute('DELETE FROM reviews_sessions WHERE expires_at <= %s OR token_hash = %s', (now, old_session))
+        db.execute('INSERT INTO reviews_sessions (token_hash, profile, expires_at) VALUES (%s, %s, %s)',
                    (hashlib.sha256(token.encode()).hexdigest(), json.dumps(profile), now + SESSION_AGE))
     session.clear()
     session['review_session'] = token
@@ -240,8 +222,8 @@ def read_session():
 def logout():
     token_hash = session_hash()
     if token_hash:
-        with session_db() as db:
-            db.execute('DELETE FROM reviews_sessions WHERE token_hash = ?', (token_hash,))
+        with get_db_connection() as db:
+            db.execute('DELETE FROM reviews_sessions WHERE token_hash = %s', (token_hash,))
     if current_app.secret_key:
         session.clear()
     return '', 204

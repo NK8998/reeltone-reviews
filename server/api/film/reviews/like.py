@@ -1,33 +1,29 @@
 from .. import film_bp
 from ...auth.oidc import viewer_id
 from flask import request, jsonify
-import sqlite3
-import os
+from api.util.db_helper import get_db_connection, lock_interaction
 from datetime import datetime
 
 
 def like_review(user_id, review_id):
     """Adds a like to a review by a specific user."""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../../db/reeltone.db')
 
-    with sqlite3.connect(db_path) as conn:
+    with get_db_connection() as conn:
+        lock_interaction(conn, 'review-like', user_id, review_id)
         cursor = conn.cursor()
-        cursor.execute("SELECT id FROM review_likes WHERE user_id = ? AND review_id = ?", (user_id, review_id))
+        cursor.execute("SELECT id FROM review_likes WHERE user_id = %s AND review_id = %s", (user_id, review_id))
         existing = cursor.fetchone()
 
         if existing:
             # User already liked — remove the like
-            cursor.execute("DELETE FROM review_likes WHERE user_id = ? AND review_id = ?", (user_id, review_id))
-            conn.commit()
+            cursor.execute("DELETE FROM review_likes WHERE user_id = %s AND review_id = %s", (user_id, review_id))
             return {"message": "Like removed."}
         else:
             # User hasn't liked yet — insert new like
             cursor.execute("""
                 INSERT INTO review_likes (user_id, review_id, created_at)
-                VALUES (?, ?, CURRENT_TIMESTAMP)
+                VALUES (%s, %s, CURRENT_TIMESTAMP)
             """, (user_id, review_id))
-            conn.commit()
             return {"message": "Review liked."}
 
 

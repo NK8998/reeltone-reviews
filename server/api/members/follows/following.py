@@ -1,22 +1,19 @@
-import sqlite3
-import os
+from psycopg.rows import dict_row
+from api.util.db_helper import get_db_connection
 from .. import members_bp
 from flask import request, jsonify
 
 
 def get_following(user_id):
     """Retrieves full member info for all users that a given user (by user_id) is following"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../../db/reeltone.db')
 
-    with sqlite3.connect(db_path) as conn:
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+    with get_db_connection() as conn:
+        cursor = conn.cursor(row_factory=dict_row)
         cursor.execute("""
             SELECT m.id, m.user_id, m.username, m.pfp_url, m.joined_at
             FROM followers f
             JOIN members AS m ON f.followed_id = m.user_id
-            WHERE f.follower_id = ?
+            WHERE f.follower_id = %s
         """, (user_id,))
         return [dict(row) for row in cursor.fetchall()]
 

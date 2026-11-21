@@ -76,6 +76,8 @@ python app.py
 
 > Backend should run on `http://localhost:5000` unless otherwise specified.
 
+Reviews uses the `reeltone_reviews` PostgreSQL database. The workspace Compose stack provisions it and runs the schema migration. If you run Flask on the host, use the `PG*` settings in `server/.env` and apply the schema with `python migrate.py` before starting Flask.
+
 ## ReelTone Auth
 
 Start the Auth service at `http://localhost:3000`. Register a confidential client in its `OIDC_CLIENTS` configuration with these values.
@@ -91,7 +93,7 @@ Start the Auth service at `http://localhost:3000`. Register a confidential clien
 
 Set `AUTH_CLIENT_SECRET` in `server/.env` to the registered client secret. Generate a separate `REVIEWS_SESSION_SECRET` using the same command. Set `TMDB_API_KEY` for movie data. Local sign-in and community pages also work without it.
 
-For production, use the deployed Reviews origin for `REVIEWS_ORIGIN` and `NEXT_PUBLIC_SITE_URL`, set `AUTH_ISSUER=https://auth.reeltone.site`, and register the exact Reviews callback on a separate production OIDC client. Set `REVIEWS_BACKEND_URL` in the Next.js runtime environment to the internal Flask URL. Use persistent storage for the SQLite data and the file configured by `REVIEWS_SESSION_DB` so app sessions survive restarts.
+For production, use the deployed Reviews origin for `REVIEWS_ORIGIN` and `NEXT_PUBLIC_SITE_URL`, set `AUTH_ISSUER=https://auth.reeltone.site`, and register the exact Reviews callback on a separate production OIDC client. Set `REVIEWS_BACKEND_URL` in the Next.js runtime environment to the internal Flask URL. Reviews data and sessions survive app restarts in the PostgreSQL volume.
 
 ---
 

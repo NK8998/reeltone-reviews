@@ -1,9 +1,7 @@
 from .. import film_bp
 from ...auth.oidc import viewer
 from flask import request, jsonify
-import sqlite3
-import os
-from datetime import datetime
+from api.util.db_helper import get_db_connection
 
 
 def add_review(
@@ -18,18 +16,15 @@ def add_review(
         is_parent=True, 
         parent_id=None
     ):
-    """Inserts a review into the SQLite database."""
+    """Insert a film review."""
 
     try:
         if not all([user_id, film_id, film_title]):
             return {"error": "Missing required fields."}, 400
         
-        # Get the absolute path to the database
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        db_path = os.path.join(script_dir, '../../../db/reeltone.db')
 
         # Insert the review into the database
-        with sqlite3.connect(db_path) as conn:
+        with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO reviews (
@@ -38,15 +33,14 @@ def add_review(
                     rating, review_text,
                     is_parent, parent_id
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id, updated_at
             """, (
                 user_id, username, pfp_url,
                 film_id, film_title, film_poster,
                 rating, review_text,
                 bool(is_parent), parent_id
             ))
-            review_id = cursor.lastrowid
-            conn.commit()
+            review_id, updated_at = cursor.fetchone()
             data = {
                 "id": review_id,
                 "user_id": user_id,
@@ -59,7 +53,7 @@ def add_review(
                 "review_text": review_text,
                 "is_parent": is_parent,
                 "parent_id": parent_id,
-                "updated_at": datetime.now().isoformat()
+                "updated_at": updated_at.isoformat()
             }
             return {"message": "Review added successfully.", "film_data": data}
     except Exception as e:

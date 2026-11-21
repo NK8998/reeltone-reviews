@@ -1,18 +1,11 @@
-import sqlite3
-from contextlib import closing
-from pathlib import Path
+from api.util.db_helper import get_db_connection
 
 
 def add_member(user_id, username, email, pfp_url):
-    path = Path(__file__).resolve().parents[2] / 'db' / 'reeltone.db'
-    with closing(sqlite3.connect(path)) as connection, connection:
-        connection.execute('BEGIN IMMEDIATE')
-        updated = connection.execute(
-            'UPDATE members SET username = ?, email = ?, pfp_url = ? WHERE user_id = ?',
-            (username, email, pfp_url, user_id),
+    with get_db_connection() as connection:
+        connection.execute(
+            '''INSERT INTO members (user_id, username, email, pfp_url) VALUES (%s, %s, %s, %s)
+               ON CONFLICT (user_id) DO UPDATE SET username = EXCLUDED.username,
+               email = EXCLUDED.email, pfp_url = EXCLUDED.pfp_url''',
+            (user_id, username, email, pfp_url),
         )
-        if not updated.rowcount:
-            connection.execute(
-                'INSERT INTO members (user_id, username, email, pfp_url) VALUES (?, ?, ?, ?)',
-                (user_id, username, email, pfp_url),
-            )

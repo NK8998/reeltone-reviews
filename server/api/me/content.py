@@ -1,20 +1,17 @@
+from psycopg.rows import dict_row
 from ..auth.oidc import viewer_id
 from . import me_bp
 from flask import jsonify, request
-import sqlite3
-import os
+from api.util.db_helper import get_db_connection
 
 def get_user_content(user_id):
     """Get watched, watchlist as separate lists for the specified user"""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../db/reeltone.db')
 
     if not user_id:
         raise ValueError("User ID is required")
     
-    with sqlite3.connect(db_path) as conn:
-        conn.row_factory = sqlite3.Row  # Access rows like dicts
-        cursor = conn.cursor()
+    with get_db_connection() as conn:
+        cursor = conn.cursor(row_factory=dict_row)
 
         # Fetch watched films with rewatching flag
         watched_query = """
@@ -30,7 +27,7 @@ def get_user_content(user_id):
                     AND wl.film_id = w.film_id
                 ) AS rewatching
             FROM watched w
-            WHERE w.user_id = ?
+            WHERE w.user_id = %s
             ORDER BY w.watched_at DESC
         """
         cursor.execute(watched_query, (user_id,))
@@ -50,7 +47,7 @@ def get_user_content(user_id):
                     AND w.film_id = wl.film_id
                 ) AS rewatching
             FROM watchlist wl
-            WHERE wl.user_id = ?
+            WHERE wl.user_id = %s
             ORDER BY wl.added_at DESC
         """
         cursor.execute(watchlist_query, (user_id,))

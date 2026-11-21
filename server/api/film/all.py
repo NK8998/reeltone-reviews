@@ -4,22 +4,19 @@ from flask import jsonify, request
 from .essential.essential import get_essential_data
 from .reviews.get import get_reviews_by_film_id
 from .extra.related import get_related_films
-import sqlite3
-import os
+from api.util.db_helper import get_db_connection
 
 
 def check_flags(user_id, film_id):
     """Generic checker for (user_id, film_id) existence in a table."""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(script_dir, '../../db/reeltone.db')
 
-    with sqlite3.connect(db_path) as conn:
+    with get_db_connection() as conn:
         cursor = conn.cursor()
         query = """
                 SELECT
-                EXISTS(SELECT 1 FROM film_likes WHERE user_id = ? AND film_id = ?) AS has_liked_film,
-                EXISTS(SELECT 1 FROM watchlist WHERE user_id = ? AND film_id = ?) AS has_watchlist,
-                EXISTS(SELECT 1 FROM watched WHERE user_id = ? AND film_id = ?) AS has_watched
+                EXISTS(SELECT 1 FROM film_likes WHERE user_id = %s AND film_id = %s) AS has_liked_film,
+                EXISTS(SELECT 1 FROM watchlist WHERE user_id = %s AND film_id = %s) AS has_watchlist,
+                EXISTS(SELECT 1 FROM watched WHERE user_id = %s AND film_id = %s) AS has_watched
                 """
         cursor.execute(query, (user_id, film_id, user_id, film_id, user_id, film_id))
         has_liked_film, has_film_in_watchlist, has_watched_film = map(bool, cursor.fetchone())
