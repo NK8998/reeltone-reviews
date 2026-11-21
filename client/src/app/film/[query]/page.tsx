@@ -1,11 +1,11 @@
 import "./page.css";
 import Footer from "@/components/reusables/Footer/Footer";
 import Navbar from "@/components/reusables/Navbar/Navbar";
-import { backendService } from "@/services/backendService";
+import { getServerBackendService } from "@/services/serverBackendService";
 import { FilmData } from "@/types/types";
 import { dehydrate, HydrationBoundary, useQuery } from "@tanstack/react-query";
 import MainContent from "@/components/film/MainContent";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/serverBackend";
 import { getQueryClient } from "@/services/getQueryClient";
 import { redirect } from "next/navigation";
 
@@ -17,6 +17,7 @@ export default async function Page({
 }: {
   params: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const backendService = await getServerBackendService();
   const { query } = (await params) as paramType;
 
   if (!query) redirect("/");
@@ -27,7 +28,7 @@ export default async function Page({
 
   await queryClient.prefetchQuery<FilmData>({
     queryKey: ["filmData", query, user ? user.id : ""],
-    queryFn: () => backendService.filmData(query, user ? user.id : ""),
+    queryFn: () => backendService.filmData(query),
   });
 
   return (

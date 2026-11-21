@@ -3,9 +3,9 @@ import sqlite3
 DB_PATH = "reeltone.db"
 
 test_members = [
-    ("user_001", "john_doe", "john@example.com", "https://img.clerk.com/default1.png"),
-    ("user_002", "jane_smith", "jane@example.com", "https://img.clerk.com/default2.png"),
-    ("user_003", "movie_buff", "buff@example.com", "https://img.clerk.com/default3.png"),
+    ("user_001", "john_doe", "john@example.com", "/svgs/default-user-icon.svg"),
+    ("user_002", "jane_smith", "jane@example.com", "/svgs/default-user-icon.svg"),
+    ("user_003", "movie_buff", "buff@example.com", "/svgs/default-user-icon.svg"),
 ]
 
 with sqlite3.connect(DB_PATH) as conn:

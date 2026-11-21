@@ -1,6 +1,6 @@
 import { backendService } from "@/services/backendService";
 import { FilmPageReview } from "@/types/types";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/context/AuthContext";
 import { useEffect, useRef, useState } from "react";
 import RatingSelector from "./RatingSelector";
 import CommentContainer from "./CommentContainer";
@@ -43,8 +43,6 @@ export default function CommentForm({
       toast.info("Please log in to leave a review");
       return;
     }
-    const userId = user.id;
-
     if (!reviewId) {
       toast.error("Review ID is required for editing");
       return;
@@ -63,7 +61,6 @@ export default function CommentForm({
 
     try {
       const res = await backendService.editReview(
-        userId,
         reviewId,
         review_text,
         rating
@@ -91,10 +88,6 @@ export default function CommentForm({
       toast.info("Please log in to leave a review");
       return;
     }
-    const userId = user.id;
-    const username = user.username || user.firstName || "Anonymous";
-    const pfp_url = user.imageUrl || "/svgs/default-user-icon.svg";
-
     const review_text = commentText.trim();
 
     if (!review_text) {
@@ -108,16 +101,13 @@ export default function CommentForm({
     }
 
     try {
-      const res = await backendService.addReview(
-        userId,
-        username,
-        pfp_url,
-        filmId,
+      const res = await backendService.addReview({
+        film_id: filmId,
         review_text,
         rating,
-        filmTitle,
-        filmPoster
-      );
+        film_title: filmTitle,
+        film_poster: filmPoster,
+      });
 
       console.log("Review submitted:", res);
 

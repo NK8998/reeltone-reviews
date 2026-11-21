@@ -1,21 +1,22 @@
-import { backendService } from "@/services/backendService";
+import { getServerBackendService } from "@/services/serverBackendService";
 import "./page.css";
 import { dehydrate, HydrationBoundary, useQuery } from "@tanstack/react-query";
 import { MembersPage } from "@/types/types";
 import MainContent from "@/components/members/MainContent";
 import Navbar from "@/components/reusables/Navbar/Navbar";
 import Footer from "@/components/reusables/Footer/Footer";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/serverBackend";
 import { getQueryClient } from "@/services/getQueryClient";
 
 export default async function Page() {
+  const backendService = await getServerBackendService();
   const user = await currentUser();
 
   const queryClient = getQueryClient();
 
   await queryClient.prefetchQuery<MembersPage>({
     queryKey: ["membersData", user?.id],
-    queryFn: () => backendService.getMembersPageData(user?.id),
+    queryFn: () => backendService.getMembersPageData(),
   });
 
   return (

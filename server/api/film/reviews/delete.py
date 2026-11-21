@@ -1,9 +1,9 @@
 from .. import film_bp
-from flask import request, jsonify
+from ...auth.oidc import viewer_id
+from flask import current_app, request, jsonify
 import sqlite3
 import os
 from datetime import datetime
-from ...util.db_helper import check_is_admin
 
 
 def delete_review(user_id, review_id, is_admin=False):
@@ -40,9 +40,9 @@ def delete_review_route():
     """Endpoint to delete a review."""
     try:
         data = request.get_json()
-        user_id = data.get("user_id")
+        user_id = viewer_id()
         review_id = data.get("review_id")
-        is_admin = check_is_admin(user_id)  
+        is_admin = user_id in current_app.config['REVIEWS_ADMIN_IDS']
 
         if not all([user_id, review_id]):
             return jsonify({"error": "Missing user_id or review_id."}), 400

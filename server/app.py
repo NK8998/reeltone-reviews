@@ -4,14 +4,18 @@ from flask_cors import CORS
 import tmdbsimple as tmdb
 from werkzeug.middleware.proxy_fix import ProxyFix
 from api import api_bp
+from api.auth.oidc import init_auth
 from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
 
 ENV = os.environ.get("APP_ENV", "development").lower()
+app.config['APP_ENV'] = ENV
+init_auth(app)
 tmdb.API_KEY = os.environ.get("TMDB_API_KEY")
-if not tmdb.API_KEY:
+app.config['TMDB_AVAILABLE'] = bool(tmdb.API_KEY)
+if not tmdb.API_KEY and ENV != "development":
     raise RuntimeError("TMDB_API_KEY not set in environment")
 
 if ENV == "development":

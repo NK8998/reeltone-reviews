@@ -1,4 +1,5 @@
 from .. import members_bp
+from ...auth.oidc import viewer_id
 from flask import request, jsonify
 import sqlite3
 import os
@@ -31,7 +32,7 @@ def add_following_route():
     """Endpoint to add a following relationship."""
     try:
         data = request.get_json()
-        follower_id = data.get("follower_id")
+        follower_id = viewer_id()
         followed_id = data.get("followed_id")
 
         if not follower_id or not followed_id:

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { backendService } from "@/services/backendService";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/context/AuthContext";
 import { Clock, Eye, Heart } from "lucide-react";
 import { toast } from "sonner";
 
@@ -95,19 +95,15 @@ export default function FilmRight({
   } = essentialData;
 
   const addToFavourites = () => {
-    return backendService.addToFavourites(user.id, filmId.toString());
+    return backendService.addToFavourites(filmId.toString());
   };
+  const activity = { film_id: filmId, film_title: filmTitle, film_poster: filmPoster };
   const addToWatchList = () => {
-    return backendService.addToWatchList(
-      user.id,
-      filmId,
-      filmTitle,
-      filmPoster
-    );
+    return backendService.addToWatchList(activity);
   };
 
   const addtoWatched = () => {
-    return backendService.addToWatched(user.id, filmId, filmTitle, filmPoster);
+    return backendService.addToWatched(activity);
   };
 
   const copyToClipboard = () => {

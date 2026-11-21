@@ -1,4 +1,5 @@
 from .. import film_bp
+from ...auth.oidc import viewer
 from flask import request, jsonify
 import sqlite3
 import os
@@ -72,9 +73,10 @@ def add_review_route():
     try:
         data = request.get_json()
 
-        user_id = data.get("user_id")
-        username = data.get("username")
-        pfp_url = data.get("pfp_url")
+        user = viewer()
+        user_id = user["id"]
+        username = user["username"]
+        pfp_url = user["imageUrl"]
         film_id = data.get("film_id")
         film_title = data.get("film_title")
         film_poster = data.get("film_poster")

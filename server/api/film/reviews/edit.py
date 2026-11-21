@@ -1,4 +1,5 @@
 from .. import film_bp
+from ...auth.oidc import viewer_id
 from flask import request, jsonify
 import sqlite3
 import os
@@ -40,7 +41,7 @@ def edit_review_route():
     """Endpoint to edit a review."""
     try:
         data = request.get_json()
-        user_id = data.get("user_id")
+        user_id = viewer_id()
         review_id = data.get("review_id")
         new_content = data.get("new_content")
         rating = data.get("rating")

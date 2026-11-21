@@ -1,3 +1,4 @@
+from ..auth.oidc import viewer_id
 from . import film_bp
 from flask import jsonify, request
 from .essential.essential import get_essential_data
@@ -29,7 +30,7 @@ def all_films():
     """Fetch all films from the database."""
     try:
         query = request.args.get('query')
-        user_id = request.args.get('user_id')
+        user_id = viewer_id()
         
         if not query:
             return jsonify({'error': 'query parameter is required'}), 400

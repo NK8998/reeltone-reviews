@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { AppProvider } from "@/context/AppContext";
+import { AuthProvider } from "@/context/AuthContext";
 import QueryProvider from "@/providers/QueryProvider";
 import BProgress from "@/providers/BProgress";
 import { FilterProvider } from "@/context/FilterContext";
-import { ClerkProvider } from "@clerk/nextjs";
+import { currentUser } from "@/lib/serverBackend";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   description: "A platform for film enthusiasts to connect and share",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -47,23 +47,19 @@ export default function RootLayout({
       />
       <link rel='manifest' href='/site.webmanifest' />
       <link rel='icon' href='/images/favicon.ico' type='image/x-icon' />
-      <ClerkProvider dynamic>
-        <QueryProvider>
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          >
-            <AppProvider>
-              <Toaster position='bottom-right' richColors />
-              <div className='app-full-bleed'>
-                <FilterProvider>
-                  <BProgress>{children}</BProgress>
-                </FilterProvider>
-              </div>
-            </AppProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <AuthProvider user={await currentUser()}>
+          <QueryProvider>
+            <Toaster position='bottom-right' richColors />
+            <div className='app-full-bleed'>
+              <FilterProvider>
+                <BProgress>{children}</BProgress>
+              </FilterProvider>
+            </div>
             <div id='modals' />
-          </body>
-        </QueryProvider>
-      </ClerkProvider>
+          </QueryProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

@@ -20,7 +20,7 @@ def get_all_members(user_id=None):
         if user_id:
             cursor.execute("""
                 SELECT 
-                    m.*,
+                    m.id, m.user_id, m.username, m.pfp_url, m.joined_at,
                     CASE WHEN f.id IS NOT NULL THEN 1 ELSE 0 END AS is_following
                 FROM members m
                 LEFT JOIN followers f
@@ -28,7 +28,7 @@ def get_all_members(user_id=None):
                     AND f.follower_id = ?
             """, (user_id,))
         else:
-            cursor.execute("SELECT *, 0 AS is_following FROM members")
+            cursor.execute("SELECT id, user_id, username, pfp_url, joined_at, 0 AS is_following FROM members")
 
         return [
             {**dict(row), "is_following": bool(row["is_following"])}

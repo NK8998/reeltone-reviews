@@ -2,23 +2,25 @@
 
 import Footer from "@/components/reusables/Footer/Footer";
 import Navbar from "@/components/reusables/Navbar/Navbar";
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
+import { useUser } from "@/context/AuthContext";
+import { backendService } from "@/services/backendService";
 
 // Define a type for the user data to ensure consistency and better type-checking
 interface Member {
   user_id: string;
   username: string;
   pfp_url: string;
-  bio: string;
-  recentActivity: string;
+  bio?: string;
+  recentActivity?: string;
 }
 
 // Define the different states for the view
 type ViewState = "all" | "followers" | "following";
 
 const Members: React.FC = () => {
-  // Use a hardcoded user ID to match the mock data in the Flask backend
-  const currentUserId = "12345";
+  const { user } = useUser();
+  const currentUserId = user?.id;
 
   // State to hold the different lists of members
   const [allMembers, setAllMembers] = useState<Member[]>([]);
@@ -32,90 +34,30 @@ const Members: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to fetch all data from the backend
-  const fetchAllData = async (userId: string) => {
+  const fetchAllData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Fetch all members
-      const allMembersResponse = await fetch(
-        "http://localhost:8888/api/members/all"
-      );
-      if (!allMembersResponse.ok)
-        throw new Error("Failed to fetch all members");
-      const allMembersData = await allMembersResponse.json();
-      setAllMembers(allMembersData.members);
-
-      // Fetch followers for the current user
-      const followersResponse = await fetch(
-        "http://localhost:8888/api/members/follows/followers",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: userId }),
-        }
-      );
-      if (!followersResponse.ok) throw new Error("Failed to fetch followers");
-      const followersData = await followersResponse.json();
-      setFollowers(followersData.followers);
-
-      // Fetch who the current user is following
-      const followingResponse = await fetch(
-        "http://localhost:8888/api/members/follows/following",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: userId }),
-        }
-      );
-      if (!followingResponse.ok)
-        throw new Error("Failed to fetch who user is following");
-      const followingData = await followingResponse.json();
-      setFollowing(followingData.following);
-    } catch (err: any) {
-      setError(err.message);
-      console.error("Fetch error:", err);
+      const data = await backendService.getMembersPageData();
+      setAllMembers(data.members);
+      setFollowers(data.followers);
+      setFollowing(data.following);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to fetch members");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    // We will use the hardcoded ID since Clerk is not available
-    fetchAllData(currentUserId);
-  }, [currentUserId]);
+  useEffect(() => { void fetchAllData(); }, [fetchAllData, currentUserId]);
 
-  // Function to handle the follow/unfollow button click
   const handleFollowToggle = async (memberId: string) => {
-    if (!currentUserId) return; // Don't proceed if there is no logged-in user
-
-    // Check if the current user is already following this member
-    const isFollowing = following.some((member) => member.user_id === memberId);
-
-    // Determine the API endpoint based on the follow status
-    const endpoint = isFollowing
-      ? "http://localhost:8888/api/members/follows/remove"
-      : "http://localhost:8888/api/members/follows/add";
-
+    if (!currentUserId) return;
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          follower_id: currentUserId,
-          following_id: memberId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update follow status");
-      }
-
-      // Re-fetch all data to ensure the UI is in sync with the backend
-      await fetchAllData(currentUserId);
-    } catch (err) {
-      console.error("Error toggling follow status:", err);
-      // Optionally, show an error message to the user
+      await backendService.followMember(memberId);
+      await fetchAllData();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to update follow status");
     }
   };
 
@@ -187,7 +129,7 @@ const Members: React.FC = () => {
                   </p>
 
                   {/* The follow button is not shown for the current user */}
-                  {!isCurrentUser && (
+                  {currentUserId && !isCurrentUser && (
                     <button
                       onClick={() => handleFollowToggle(member.user_id)}
                       className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors 

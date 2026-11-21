@@ -207,7 +207,6 @@ export interface FilteredFilms {
 
 export type Member = {
   id: number;
-  email: string;
   joined_at: string;
   pfp_url: string;
   user_id: string;

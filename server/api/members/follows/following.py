@@ -13,7 +13,7 @@ def get_following(user_id):
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT m.* 
+            SELECT m.id, m.user_id, m.username, m.pfp_url, m.joined_at
             FROM followers f
             JOIN members AS m ON f.followed_id = m.user_id
             WHERE f.follower_id = ?

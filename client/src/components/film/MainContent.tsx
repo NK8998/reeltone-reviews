@@ -5,7 +5,7 @@ import LeftContent from "./LeftContent";
 import RightContent from "./RightContent";
 import MiddleContent from "./MiddleContent";
 import ReviewsSection from "./ReviewsSection";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/context/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { backendService } from "@/services/backendService";
 import MainSectionLoader from "../reusables/MainSectionLoader";
@@ -21,7 +21,7 @@ export default function MainContent({
 }) {
   const { data, isLoading, isError, error } = useQuery<FilmData>({
     queryKey: ["filmData", query, userId],
-    queryFn: () => backendService.filmData(query, userId),
+    queryFn: () => backendService.filmData(query),
   });
 
   if (isLoading) return <MainSectionLoader />;

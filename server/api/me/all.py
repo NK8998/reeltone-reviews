@@ -1,4 +1,5 @@
 from .content import get_user_content
+from ..auth.oidc import viewer_id
 from . import me_bp
 from .friends import get_friends_activity
 from .films import get_top_and_now_playing
@@ -9,7 +10,7 @@ from flask import request, jsonify
 def all():
     try:
         """Endpoint to fetch all user-related data."""
-        user_id = request.args.get("user_id")
+        user_id = viewer_id()
         if not user_id:
             return {"error": "User ID is required"}, 400
 

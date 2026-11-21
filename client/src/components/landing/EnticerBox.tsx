@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/serverBackend";
 import Link from "next/link";
 
 interface EnticerProps {
@@ -19,7 +19,7 @@ export default async function EnticerBox({ filmId, filmTitle }: EnticerProps) {
         {user ? (
           <Link href={`/film/${filmId}`}> Write Yours Too</Link>
         ) : (
-          <Link href={"/auth/sign-up"}> Sign Up</Link>
+          <a href="/auth/sign-up"> Sign Up</a>
         )}{" "}
         and be part of the community
       </p>

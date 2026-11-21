@@ -1,4 +1,5 @@
 from .. import film_bp
+from ...auth.oidc import viewer_id
 from flask import request, jsonify
 import sqlite3
 import os
@@ -32,7 +33,7 @@ def add_watched_route():
     """Endpoint to add a film to the watched list."""
     try:
         data = request.get_json()
-        user_id = data.get("user_id")
+        user_id = viewer_id()
         film_id = data.get("film_id")
         film_title = data.get("film_title")
         film_poster = data.get("film_poster")

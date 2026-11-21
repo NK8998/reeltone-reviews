@@ -1,3 +1,4 @@
+from ..auth.oidc import viewer_id
 from . import members_bp
 from flask import request, jsonify
 from .discover import get_all_members
@@ -9,7 +10,7 @@ from .follows.following import get_following
 def get_all_members_data():
     """Endpoint to get all members."""
     try:
-        user_id = request.args.get("user_id")
+        user_id = viewer_id()
         members = get_all_members(user_id)
         if user_id:
             followers = get_followers(user_id)

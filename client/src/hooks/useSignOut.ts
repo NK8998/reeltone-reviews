@@ -1,16 +1,16 @@
 "use client";
-import { useClerk } from "@clerk/nextjs";
+
 import { toast } from "sonner";
+import { reviewsApi } from "@/lib/reviewsAuth";
 
 export default function useSignOut() {
-  const { signOut } = useClerk();
   const handleSignOut = async () => {
     try {
-      const url = `${window.location.origin}/`;
-      await signOut({ redirectUrl: url });
-    } catch (error) {
+      const response = await fetch(`${reviewsApi}/auth/logout`, { method: "POST" });
+      if (!response.ok) throw new Error("Sign-out failed");
+      window.location.assign("/");
+    } catch {
       toast.error("There was an error when signing out.");
-      console.error("Error signing out:", error);
     }
   };
 

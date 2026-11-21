@@ -1,4 +1,5 @@
 from .. import film_bp
+from ...auth.oidc import viewer_id
 from flask import request, jsonify
 import sqlite3
 import os
@@ -35,7 +36,7 @@ def like_film_route():
     """Endpoint to like a film."""
     try:
         data = request.get_json()
-        user_id = data.get("user_id")
+        user_id = viewer_id()
         film_id = data.get("film_id")
 
         if not all([user_id, film_id]):

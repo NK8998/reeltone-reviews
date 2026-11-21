@@ -1,3 +1,4 @@
+from ..auth.oidc import viewer_id
 from . import me_bp
 from flask import jsonify, request
 import sqlite3
@@ -65,7 +66,7 @@ def get_user_content(user_id):
 @me_bp.route("/content", methods=["GET"])
 def content():
     try:
-        user_id = request.args.get("user_id")
+        user_id = viewer_id()
         if not user_id:
             return jsonify({"error": "User ID is required"}), 400
         friends_activity = get_user_content(user_id)

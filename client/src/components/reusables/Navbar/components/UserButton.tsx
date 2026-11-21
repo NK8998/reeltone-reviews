@@ -1,6 +1,6 @@
 "use client";
 import { AccountSvg, LogoutSvg } from "@/assets/icons";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { MouseEvent, useEffect, useState } from "react";
 import useSignOut from "@/hooks/useSignOut";

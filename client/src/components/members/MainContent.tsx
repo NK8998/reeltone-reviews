@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 export default function MainContent({ userId }: { userId: string }) {
   const { data, isError, error, isLoading } = useQuery<MembersPage>({
     queryKey: ["membersData", userId],
-    queryFn: () => backendService.getMembersPageData(userId),
+    queryFn: () => backendService.getMembersPageData(),
   });
   if (isError) return <MainSectionError errorMessage={error.message} />;
   if (isLoading) return <MainSectionLoader />;

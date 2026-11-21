@@ -1,10 +1,11 @@
 import "./page.css";
 import Footer from "@/components/reusables/Footer/Footer";
 import Navbar from "@/components/reusables/Navbar/Navbar";
-import { backendService } from "@/services/backendService";
+import { getServerBackendService } from "@/services/serverBackendService";
 import FilmsMainSection from "@/components/films/MainSection";
 
 export default async function Films() {
+  const backendService = await getServerBackendService();
   const data = await backendService.filmsData();
 
   return (

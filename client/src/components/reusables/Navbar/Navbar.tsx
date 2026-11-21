@@ -7,7 +7,7 @@ import UserButton from "./components/UserButton";
 import Link from "next/link";
 import { useState } from "react";
 import MenuButton from "./components/MenuButton";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/context/AuthContext";
 export default function Navbar({}) {
   const [navLinksOpen, setNavLinksOpen] = useState(false);
   const { user } = useUser();

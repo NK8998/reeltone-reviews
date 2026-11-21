@@ -1,15 +1,17 @@
+import { redirect } from "next/navigation";
 import "./page.css";
 import Footer from "@/components/reusables/Footer/Footer";
 import Navbar from "@/components/reusables/Navbar/Navbar";
-import { backendService } from "@/services/backendService";
+import { getServerBackendService } from "@/services/serverBackendService";
 import MainContent from "@/components/me/MainContent";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/serverBackend";
 
 export default async function Me() {
+  const backendService = await getServerBackendService();
   const user = await currentUser();
-  if (!user) throw new Error("User not found");
+  if (!user) redirect("/auth/sign-in?next=/me");
 
-  const data = await backendService.meData(user?.id);
+  const data = await backendService.meData();
 
   return (
     <div className='me-page'>

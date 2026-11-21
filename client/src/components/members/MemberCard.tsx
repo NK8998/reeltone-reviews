@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useUser } from "@clerk/nextjs"; // guessing based on your context
+import { useUser } from "@/context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { Minus, Plus } from "lucide-react";
 import { Member } from "@/types/types";
@@ -23,7 +23,7 @@ export default function MemberCard({
     setIsFollowing(!isFollowing);
 
     backendService
-      .followMember(String(user.id), String(member.user_id))
+      .followMember(String(member.user_id))
       .then((response) => {
         console.log(response.message);
 

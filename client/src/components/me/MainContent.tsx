@@ -5,7 +5,7 @@ import TopRated from "./TopRated";
 import NowPlaying from "./NowPlaying";
 import ContentRenderer from "./ContentRenderer";
 import { Clock, Eye } from "lucide-react";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@/lib/serverBackend";
 
 interface MainContentProps {
   data: mePageTypes;

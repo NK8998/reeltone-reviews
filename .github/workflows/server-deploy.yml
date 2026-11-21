@@ -32,7 +32,7 @@ jobs:
 
             # Build new image from inside server directory
             cd ~/reeltone/server
-            sudo docker build --pull -t reeltone-server -f .dockerfile .
+            sudo docker build --pull -t reeltone-server .
 
             # Go back home and run container
             cd ~

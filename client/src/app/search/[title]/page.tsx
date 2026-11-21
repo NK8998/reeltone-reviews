@@ -1,7 +1,7 @@
 import Footer from "@/components/reusables/Footer/Footer";
 import Navbar from "@/components/reusables/Navbar/Navbar";
 import MainContent from "@/components/search/MainContent";
-import { backendService } from "@/services/backendService";
+import { getServerBackendService } from "@/services/serverBackendService";
 import { getQueryClient } from "@/services/getQueryClient";
 import { MovieDetails, SearchResults } from "@/types/types";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -16,6 +16,7 @@ export default async function SearchTitlePage({
 }: {
   params: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const backendService = await getServerBackendService();
   const { title } = (await params) as paramType;
 
   if (!title) redirect("/");

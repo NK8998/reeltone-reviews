@@ -4,7 +4,7 @@ import Rating from "./Rating";
 import { useState } from "react";
 import CommentForm from "./CommentForm";
 import { Delete, Edit, Edit2Icon } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/context/AuthContext";
 
 interface CommentProps {
   filmId?: number;
