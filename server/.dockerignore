@@ -1,8 +1,0 @@
-.env*
-.git
-.venv
-venv
-**/__pycache__
-**/*.db
-**/*.db-*
-**/*.sqlite3*

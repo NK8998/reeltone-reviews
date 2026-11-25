@@ -1,1 +1,0 @@
-namespace MovieIngestion.Infrastructure.Repositories;

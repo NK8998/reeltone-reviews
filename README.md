@@ -1,82 +1,18 @@
-# RealTone – Movie Review Platform
+# ReelTone Reviews
 
-ReelTone Reviews is a Next.js frontend and Flask backend. Use the [workspace Compose stack](../util/README.md) to start both with ReelTone Auth.
+This repository contains the ReelTone Reviews Next.js frontend. Its API is served by [ReelTone Server](../reeltone-server/README.md). The workspace [Compose stack](../reeltone-util/README.md) runs the backend and this frontend together.
 
----
+## Frontend setup
 
-## Movie API
-
-```text
-https://developer.themoviedb.org/reference/intro/getting-started
-```
-
----
-
-## 🧱 Project Structure
-
-```text
-reeltone-reviews/
-├── client/     # Frontend - Next.js
-└── server/     # Backend - Flask
-```
----
-
-## 🚀 Getting Started
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/YOUR_USERNAME/realtone.git
-cd realtone
-```
-
----
-
-## 🔁 Git Basics – Push & Pull
-
-### Pull latest changes:
-
-```bash
-git pull origin main
-```
-
-### Add your changes:
-
-```bash
-git add .
-git commit -m "your message here"
-git push origin main
-```
-
-> 🔒 Make sure you're working on a branch or feature PR if you're collaborating in a team.
-
----
-
-## 🎬 Frontend Setup (Next.js)
-
-```bash
-cd client
+```sh
 npm ci
 cp .env.example .env.local
 npm run dev -- --port 3101
 ```
 
-> Access Reviews at `http://localhost:3101`.
+For a backend on the same host, use `REVIEWS_BACKEND_URL=http://127.0.0.1:3000/reviews`. Compose sets the equivalent internal URL automatically.
 
----
-
-## 🎯 Backend Setup (Flask)
-
-```bash
-cd server
-pip install -r requirements.txt
-cp .env.example .env
-python app.py
-```
-
-> Backend should run on `http://localhost:5000` unless otherwise specified.
-
-Reviews uses the `reeltone_reviews` PostgreSQL database. The workspace Compose stack provisions it and runs the schema migration. If you run Flask on the host, use the `PG*` settings in `server/.env` and apply the schema with `python migrate.py` before starting Flask.
+Build the production image from the repository root with `docker build .`.
 
 ## ReelTone Auth
 
@@ -91,22 +27,6 @@ Start the Auth service at `http://localhost:3000`. Register a confidential clien
 | `token_endpoint_auth_method` | `client_secret_basic` |
 | `client_secret` | Generate with `openssl rand -hex 32` |
 
-Set `AUTH_CLIENT_SECRET` in `server/.env` to the registered client secret. Generate a separate `REVIEWS_SESSION_SECRET` using the same command. Set `TMDB_API_KEY` for movie data. Local sign-in and community pages also work without it.
+Set `AUTH_CLIENT_SECRET` in `../reeltone-server/reviews/.env` to the registered client secret. Generate a separate `REVIEWS_SESSION_SECRET` using the same command. Set `TMDB_API_KEY` for movie data. Local sign-in and community pages also work without it.
 
-For production, use the deployed Reviews origin for `REVIEWS_ORIGIN` and `NEXT_PUBLIC_SITE_URL`, set `AUTH_ISSUER=https://auth.reeltone.site`, and register the exact Reviews callback on a separate production OIDC client. Set `REVIEWS_BACKEND_URL` in the Next.js runtime environment to the internal Flask URL. Reviews data and sessions survive app restarts in the PostgreSQL volume.
-
----
-
-## 🛠️ Notes
-
-* Ensure Python 3.10+ and Node.js 18+ are installed.
-* Use a virtual environment for Python dependencies (e.g., `venv`, `conda`).
-* Consider using `.env` files for configuration in both `client/` and `server/`.
-
----
-
-## 📬 Questions or Issues?
-
-* Open an issue or start a discussion in the GitHub repo!
-
----
+For production, use the deployed Reviews origin for `REVIEWS_ORIGIN` and `NEXT_PUBLIC_SITE_URL`, set `AUTH_ISSUER=https://auth.reeltone.site`, and register the exact Reviews callback on a separate production OIDC client. Set `REVIEWS_BACKEND_URL` in the Next.js runtime environment to the internal NestJS URL ending in `/reviews`. Reviews data and sessions survive app restarts in the PostgreSQL volume.
